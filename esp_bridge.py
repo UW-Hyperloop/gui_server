@@ -72,24 +72,30 @@ def start_server():
             while True:
                 cmd = commands_from_gui.get_nowait()
                 if cmd == "start":
+                    print("[BRIDGE] Received start command from GUI")
                     send_start_flag, send_stop_flag = True, False
                 elif cmd == "stop":
+                    print("[BRIDGE] Received stop command from GUI")
                     send_stop_flag, send_start_flag = True, False
         except queue.Empty:
             pass
         # keyboard shortcuts (optional)
         if KEY_SIGNAL and not estop_flag:
             if CHAR == "s":
+                print("[BRIDGE] Start key pressed")
                 send_start_flag, send_stop_flag = True, False
             elif CHAR == "t":
+                print("[BRIDGE] Stop key pressed")
                 send_stop_flag, send_start_flag = True, False
             KEY_SIGNAL = False
         # ------------------------------------------------------------------
         # transmit START/STOP frames when appropriate
         if send_start_flag and not esp_sending_json:
+            print("[BRIDGE] Sending START frame to ESP")
             client_socket.sendall(bytes([0x02, START_ID, 0x03]))
             time.sleep(0.1)
         if send_stop_flag and esp_sending_json:
+            print("[BRIDGE] Sending STOP frame to ESP")
             client_socket.sendall(bytes([0x02, STOP_ID, 0x03]))
             time.sleep(0.1)
         # ------------------------------------------------------------------

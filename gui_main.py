@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                             QLabel, QSlider, QPushButton, QGridLayout, QFrame)
 from PyQt5.QtGui     import QIcon, QFont, QPainter, QColor, QPen, QBrush, QPolygonF
 
-from esp_bridge import start_server, gui_queue      # ← same object
+from esp_bridge import start_server, gui_queue, commands_from_gui      # ← same object
 from motor_temp_gauge import MotorTempGauge
 
 # Create copies of the gauge for different sensor types
@@ -129,6 +129,8 @@ class MainWindow(QWidget):
     def __init__(self, bridge: BridgeToQt):
         super().__init__()
         self.setWindowTitle("Machine Monitoring Dashboard")
+        self.setFocusPolicy(Qt.StrongFocus)  # Enable keyboard focus
+        self.setFocus()  # Set focus to this window
         
         # Create gauges
         self.motor_gauge = MotorTempGauge(self)
@@ -229,6 +231,36 @@ class MainWindow(QWidget):
         # Connect the bridge signal
         bridge.new_data.connect(self._update_from_esp)
 
+    def keyPressEvent(self, event):
+        """Handle keyboard events"""
+        print("[GUI] Key pressed:", event.key())  # Debug print
+        if event.key() == Qt.Key_S:
+            print("[GUI] 'S' key pressed")
+            try:
+                commands_from_gui.put("start")
+                print("[GUI] Start command sent to bridge")
+            except Exception as e:
+                print("[GUI] Error sending start command:", e)
+        elif event.key() == Qt.Key_T:
+            print("[GUI] 'T' key pressed")
+            try:
+                commands_from_gui.put("stop")
+                print("[GUI] Stop command sent to bridge")
+            except Exception as e:
+                print("[GUI] Error sending stop command:", e)
+        else:
+            super().keyPressEvent(event)
+
+    def focusInEvent(self, event):
+        """Called when the window gains focus"""
+        print("[GUI] Window gained focus")
+        super().focusInEvent(event)
+
+    def focusOutEvent(self, event):
+        """Called when the window loses focus"""
+        print("[GUI] Window lost focus")
+        super().focusOutEvent(event)
+
     def toggle_power(self):
         self.machine_running = not self.machine_running
         if self.machine_running:
@@ -291,7 +323,8 @@ def main():
     app = QApplication(sys.argv)
     bridge = BridgeToQt(gui_queue)  # same queue from esp_bridge
     window = MainWindow(bridge)
-    window.showFullScreen()  # Make the window full screen
+    window.resize(1200, 800)  # Set a reasonable window size
+    window.show()  # Show as normal window instead of fullscreen
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

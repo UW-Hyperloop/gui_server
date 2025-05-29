@@ -6,7 +6,8 @@ can be tested without real hardware.
 
 import socket, json, random, time, sys
 
-HOST, PORT = "127.0.0.1", 12346   # must match esp_bridge.py
+HOST, PORT = "192.168.0.111", 12346   # must match esp_bridge.py
+#HOST, PORT = "127.0.0.1", 12346   # localhost
 
 MSG_ID_TBM_DATA = 0x35            # same ID the real board uses
 
